@@ -1,4 +1,4 @@
-from project import is_int_between, is_valid_search, add
+from project import is_int_between, is_valid_search
 
 
 def test_is_int_between():
@@ -11,7 +11,3 @@ def test_is_valid_search():
     assert is_valid_search("             ") == False
     assert is_valid_search("a") == False
     assert is_valid_search("abc") == True
-
-
-def test_add():
-    assert add(1, 1) == 2

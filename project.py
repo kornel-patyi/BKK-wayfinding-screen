@@ -4,13 +4,16 @@ import sys
 import json
 import requests
 import threading
+import asyncio
+import aiohttp
 import time
+
+from dataclasses import dataclass
+from collections.abc import Collection
 
 os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
 import pygame
 
-from dataclasses import dataclass
-from collections.abc import Collection
 
 pygame.init()
 
@@ -60,10 +63,6 @@ class Text(Sprite):
         return Text(text=text_dict["text"], surface=surface, rect=rect)
 
 
-def add(n1, n2):
-    return n1 + n2
-
-
 def get_stop_name(api_key):
     while True:
         stop_name = input("Please give a stop name: ")
@@ -81,7 +80,7 @@ def get_stop_name(api_key):
                 result = api_response.json()
                 try:
                     stops = result["data"]["entry"]["stopIds"]
-                except:
+                except KeyError:
                     pass
                 else:
                     if stops:
@@ -257,6 +256,8 @@ def main():
     screen = pygame.display.set_mode(size)
 
     pygame.display.set_caption("BKK display")
+    icon = pygame.image.load("assets/icon/icon.png")
+    pygame.display.set_icon(icon)
 
     # Loop until the user clicks the close button.
     done = False

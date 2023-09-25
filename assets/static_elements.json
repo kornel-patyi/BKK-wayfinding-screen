@@ -1,0 +1,60 @@
+{
+	"texts": [
+		{
+			"text": "Járat",
+			"pos": {
+				"align": "bottomleft",
+				"pos": [60, 62]
+			},
+			"size": "standard"
+		},
+		{
+			"text": "Irány",
+			"pos": {
+				"align": "bottomleft",
+				"pos": [200, 62]
+			},
+			"size": "standard"
+		},
+
+		{
+			"text": "Indulás",
+			"pos": {
+				"align": "bottomright",
+				"pos": [957, 62]
+			},
+			"size": "standard"
+		},
+		{
+			"text": "(perc)",
+			"pos": {
+				"align": "bottomright",
+				"pos": [1020, 55]
+			},
+			"size": "small"
+		},
+		{
+			"text": "!!!choosen stop!!!",
+			"pos": {
+				"align": "midleft",
+				"pos": [62, 365]
+			},
+			"size": "standard"
+		}
+	],
+	"images": [{
+			"path": "assets/img/budapest_logo.png",
+			"pos": {
+				"align": "midright",
+				"pos": [922, 360]
+			}
+		},
+		{
+			"path": "assets/img/bkk_logo.png",
+			"pos": {
+				"align": "midright",
+				"pos": [1023, 364]
+			}
+		}
+	]
+}
