@@ -152,45 +152,46 @@ def get_data_for_stops(api_key: str, stop_ids: Collection) -> list:
     return stops
 
 
-departures = []
-def refresh_data(api_key: str, stop_id: str) -> None:
+async def refresh_data(api_key: str, stop_id: str) -> list:
     url = "https://futar.bkk.hu/api/query/v1/ws/otp/api/where/arrivals-and-departures-for-stop"
-    params = {
-        "minutesBefore": 0,
-        "minutesAfter": 60,
-        "stopId": (stop_id),
-        "onlyDepartures": True,
-        "limit": 60,
-        "minResult": 5,
-        "version": 2,
-        "includeReferences": True,
-        "key": api_key
-    }
-    api_response = requests.get(url, params)
-    api_response_json = api_response.json()
-    api_departures = api_response_json["data"]["entry"]["stopTimes"]
-    api_trips = api_response_json["data"]["references"]["trips"]
-    api_routes = api_response_json["data"]["references"]["routes"]
-    departures_func = []
-    for api_departure in api_departures:
-        trip_id = api_departure["tripId"]
-        sign_text = api_departure["stopHeadsign"]
-        if "predictedDepartureTime" in api_departures:
-            departure_time = api_departure["predictedDepartureTime"]
-        else:
-            departure_time = api_departure["departureTime"]
+    params = (
+        ("minutesBefore", "0"),
+        ("minutesAfter", "60"),
+        ("stopId", str(stop_id)),
+        ("onlyDepartures", "true"),
+        ("limit", "60"),
+        ("minResult", "5"),
+        ("version", "2"),
+        ("includeReferences", "true"),
+        ("key", api_key)
+    )
+    async with aiohttp.ClientSession() as session:
+        async with session.request("GET", url, params=params) as api_response:
+            try:
+                api_response_json = await api_response.json()
+            except aiohttp.client_exceptions.ContentTypeError:
+                raise ValueError("Invalid params")
+            api_departures = api_response_json["data"]["entry"]["stopTimes"]
+            api_trips = api_response_json["data"]["references"]["trips"]
+            api_routes = api_response_json["data"]["references"]["routes"]
+            departures_func = []
+            for api_departure in api_departures:
+                trip_id = api_departure["tripId"]
+                sign_text = api_departure["stopHeadsign"]
+                if "predictedDepartureTime" in api_departures:
+                    departure_time = api_departure["predictedDepartureTime"]
+                else:
+                    departure_time = api_departure["departureTime"]
 
-        route_id = api_trips[trip_id]["routeId"]
-        line_name = api_routes[route_id]["shortName"]
-        departures_func.append({
-            "line_name": line_name,
-            "sign_text": sign_text,
-            "departure_time": departure_time
-        })
+                route_id = api_trips[trip_id]["routeId"]
+                line_name = api_routes[route_id]["shortName"]
+                departures_func.append({
+                    "line_name": line_name,
+                    "sign_text": sign_text,
+                    "departure_time": departure_time
+                })
 
-
-    global departures
-    departures = departures_func
+            return departures_func
 
 
 def shorten_text(font, text, max_width):
@@ -200,7 +201,8 @@ def shorten_text(font, text, max_width):
         width = font.size(text)[0]
     return text
 
-def main():
+
+async def main():
     ########################
     # checking the api key #
     ########################
@@ -246,7 +248,7 @@ def main():
         else:
             print("Incorrect value given")
 
-    CHOOSEN_STOP = stops[stop_num - 1]
+    CHOSEN_STOP = stops[stop_num - 1]
 
 
     #####################################################
@@ -275,7 +277,7 @@ def main():
         texts = static_elements_file["texts"]
         for text in texts:
             if text["text"] == "!!!choosen stop!!!":
-                text["text"] = CHOOSEN_STOP["name"]
+                text["text"] = CHOSEN_STOP["name"]
             static_elements.append(Text.from_dict(text))
 
         images = static_elements_file["images"]
@@ -286,7 +288,8 @@ def main():
     REFRESH_DATA = pygame.USEREVENT
     pygame.time.set_timer(REFRESH_DATA, 5000)
 
-    refresh_data(api_key, CHOOSEN_STOP["id"])
+    refresh_task = asyncio.create_task(refresh_data(api_key, CHOSEN_STOP["id"]))
+    departures = await refresh_task
 
     # drawing all the static elements which doesn't need to be redrawn
     for static_element in static_elements:
@@ -298,11 +301,11 @@ def main():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+            if refresh_task.done():
+                departures = await refresh_task
             if event.type == REFRESH_DATA:
-                x = threading.Thread(
-                    target=refresh_data, args=(api_key, CHOOSEN_STOP["id"])
-                )
-                x.start()
+                refresh_task = asyncio.create_task(refresh_data(api_key, CHOSEN_STOP["id"]))
+
 
         pygame.draw.rect(screen, SCREEN_BLACK, display_panel_rect)
         curr_epoch_time = time.time()
@@ -347,4 +350,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
