@@ -4,6 +4,7 @@ import sys
 import json
 import asyncio
 import aiohttp
+import requests
 import time
 
 from dataclasses import dataclass
