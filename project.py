@@ -2,8 +2,6 @@ import os
 import tabulate
 import sys
 import json
-import requests
-import threading
 import asyncio
 import aiohttp
 import time
