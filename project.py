@@ -129,8 +129,8 @@ def get_data_for_stops(api_key: str, stop_ids: Collection) -> list:
         stop_route_ids = api_stop["routeIds"]
         if stop_route_ids:
             stop_routes = []
-            for id in stop_route_ids:
-                curr_route = api_routes[id]
+            for stop_route_id in stop_route_ids:
+                curr_route = api_routes[stop_route_id]
                 stop_routes.append({
                     "type": curr_route["type"],
                     "name": curr_route["shortName"],
